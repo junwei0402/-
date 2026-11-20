@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>學測英文單字 50 題線上挑戰</title>
+<title>學測英文單字 50 題雙模式挑戰</title>
 <style>
   * { box-sizing: border-box; }
   body { font-family: system-ui, -apple-system, sans-serif; margin: 0; min-height: 100vh; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); display: flex; justify-content: center; align-items: center; padding: 15px; color: #2d3748; }
@@ -11,6 +11,9 @@
   @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
   h2 { margin-top: 0; color: #1a202c; text-align: center; font-size: 24px; }
   .info-tag { text-align: center; color: #718096; font-size: 14px; margin-bottom: 18px; }
+  .mode-group { display: flex; gap: 10px; margin-bottom: 18px; }
+  .mode-btn { flex: 1; padding: 14px 10px; font-size: 16px; font-weight: 700; border: 2px solid #cbd5e0; border-radius: 12px; background: white; color: #4a5568; cursor: pointer; transition: all 0.2s; }
+  .mode-btn.active { border-color: #667eea; background: #ebf4ff; color: #4c51bf; box-shadow: 0 4px 10px rgba(102,126,234,0.2); }
   input { width: 100%; padding: 13px; margin-bottom: 14px; font-size: 16px; border: 2px solid #e2e8f0; border-radius: 12px; outline: none; }
   input:focus { border-color: #667eea; }
   .primary-btn { width: 100%; padding: 14px; font-size: 17px; font-weight: 700; border: none; border-radius: 12px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; cursor: pointer; box-shadow: 0 4px 15px rgba(102,126,234,0.4); }
@@ -19,7 +22,7 @@
   .progress-bar { height: 100%; width: 0%; background: linear-gradient(90deg, #667eea, #764ba2); transition: width 0.25s ease; }
   .status-bar { display: flex; justify-content: space-between; font-size: 14px; font-weight: 700; color: #4a5568; margin-bottom: 10px; }
   .word-box { background: #f7fafc; border-radius: 16px; padding: 24px 15px; margin: 14px 0 18px; text-align: center; border: 1px solid #edf2f7; }
-  #question-word { font-size: 34px; font-weight: 700; color: #2b6cb0; margin: 0; }
+  #question-word { font-size: 32px; font-weight: 700; color: #2b6cb0; margin: 0; word-break: break-word; }
   .opt-btn { width: 100%; padding: 13px 16px; margin: 7px 0; font-size: 16px; font-weight: 500; border: 2px solid #e2e8f0; border-radius: 12px; background: white; color: #2d3748; text-align: left; cursor: pointer; transition: all 0.15s; }
   .opt-btn:hover:not(:disabled) { border-color: #667eea; background: #ebf4ff; }
   .opt-btn.correct { background: #c6f6d5 !important; border-color: #38a169 !important; color: #22543d !important; font-weight: 700; }
@@ -31,24 +34,38 @@
   .rank-1 { background: #fefcbf; font-weight: 700; }
   .rank-2 { background: #edf2f7; font-weight: 600; }
   .rank-3 { background: #feebc8; font-weight: 600; }
-  .rank-img { max-width: 180px; max-height: 180px; border-radius: 12px; margin: 10px auto 5px; display: block; object-fit: contain; }
+  .rank-img { max-width: 170px; max-height: 170px; border-radius: 12px; margin: 10px auto 5px; display: block; object-fit: contain; }
+  .wrong-section { text-align: left; margin: 18px 0; border-top: 2px dashed #e2e8f0; padding-top: 15px; }
+  .wrong-list { max-height: 280px; overflow-y: auto; padding-right: 4px; }
+  .wrong-item { background: #fff5f5; border-left: 4px solid #e53e3e; padding: 10px 12px; border-radius: 8px; margin-bottom: 8px; font-size: 14px; }
+  .wrong-q { font-weight: 700; font-size: 16px; color: #2d3748; margin-bottom: 4px; }
+  .wrong-ans-bad { color: #c53030; text-decoration: line-through; margin-right: 10px; }
+  .wrong-ans-good { color: #2f855a; font-weight: 700; }
 </style>
 </head>
 <body>
 
 <div class="card" id="start-screen">
   <h2>🎓 學測單字 50 題挑戰</h2>
-  <p class="info-tag">隨機抽選 50 題</p>
+  <p class="info-tag">請先選擇挑戰模式 • 同分比速度</p>
   <p id="loading-msg" style="text-align:center; color:#667eea; font-weight:600;">⏳ 題庫載入中，請稍候...</p>
-  <div id="start-controls" style="display:none;">
+  
+  <div id="mode-selector" style="display:none;">
+    <div class="mode-group">
+      <button class="mode-btn" id="btn-en2zh" onclick="selectMode('en2zh')">🇬🇧 看英選中</button>
+      <button class="mode-btn" id="btn-zh2en" onclick="selectMode('zh2en')">🇹🇼 看中選英</button>
+    </div>
+  </div>
+
+  <div id="mode-content" style="display:none; animation: fadeIn 0.25s ease-out;">
     <input type="text" id="player-name" placeholder="輸入你的暱稱或班級座號" required>
     <button class="primary-btn" onclick="startQuiz()">🚀 開始挑戰</button>
+    <h3 id="lb-title" style="margin: 22px 0 5px; font-size: 16px;">🏆 即時風雲榜</h3>
+    <table id="leaderboard-table">
+      <thead><tr><th>名次</th><th>玩家</th><th>分數</th><th>耗時</th></tr></thead>
+      <tbody></tbody>
+    </table>
   </div>
-  <h3 style="margin: 20px 0 5px; font-size: 16px;">🏆 即時排行榜（前 10 名）</h3>
-  <table id="leaderboard-table">
-    <thead><tr><th>名次</th><th>玩家</th><th>分數</th><th>耗時</th></tr></thead>
-    <tbody><tr><td colspan="4" style="text-align:center; color:#a0aec0;">讀取最新排名中...</td></tr></tbody>
-  </table>
 </div>
 
 <div class="card" id="quiz-screen" style="display:none;">
@@ -65,13 +82,19 @@
 <div class="card" id="result-screen" style="display:none; text-align:center;">
   <h2 id="rank-title">🎉 測驗完成！</h2>
   <img id="rank-image" class="rank-img" src="" alt="級距圖片">
-  <div style="background:#f7fafc; padding:18px; border-radius:16px; margin:14px 0;">
-    <p style="margin:0 0 6px; font-size:15px; color:#4a5568;">最終得分</p>
-    <div style="font-size:40px; font-weight:700; color:#667eea;"><span id="final-score">0</span> <span style="font-size:18px;">/ 100</span></div>
-    <p style="margin:8px 0 0; font-size:15px; color:#e53e3e; font-weight:600;">⏱️ 總耗時：<span id="final-time">0</span></p>
+  <div style="background:#f7fafc; padding:16px; border-radius:16px; margin:12px 0;">
+    <p style="margin:0 0 4px; font-size:14px; color:#4a5568;">最終得分（<span id="result-mode-tag">看英選中</span>）</p>
+    <div style="font-size:38px; font-weight:700; color:#667eea;"><span id="final-score">0</span> <span style="font-size:18px;">/ 100</span></div>
+    <p style="margin:6px 0 0; font-size:14px; color:#e53e3e; font-weight:600;">⏱️ 總耗時：<span id="final-time">0</span></p>
   </div>
-  <p id="upload-status" style="font-size:14px; color:#718096;">正在上傳成績至排行榜...</p>
-  <button class="primary-btn" onclick="location.reload()">🔄 再玩一次 / 查看最新排名</button>
+  <p id="upload-status" style="font-size:13px; color:#718096; margin: 8px 0;">正在上傳成績至排行榜...</p>
+  
+  <div class="wrong-section" id="wrong-section">
+    <h3 id="wrong-header" style="margin: 0 0 10px; font-size: 16px; color: #c53030;">📝 本次錯題訂正</h3>
+    <div class="wrong-list" id="wrong-list"></div>
+  </div>
+
+  <button class="primary-btn" onclick="location.reload()">✅ 錯題閱讀完畢，再來一次</button>
 </div>
 
 <script>
@@ -79,7 +102,8 @@ const API_URL = "https://script.google.com/macros/s/AKfycbxmqnznaDW4HOsotbLjWBcO
 const QUIZ_COUNT = 50;
 const POINTS_PER_QUESTION = 2;
 
-let wordBank = [], quizList = [], currentIdx = 0, score = 0, playerName = "";
+let wordBank = [], lbData = { en2zh: [], zh2en: [] }, currentMode = "";
+let quizList = [], wrongRecords = [], currentIdx = 0, score = 0, playerName = "";
 let startTime = 0, timerInterval = null, totalSeconds = 0, isAnswering = false;
 
 const cachedWords = localStorage.getItem("gsat_word_bank");
@@ -88,7 +112,7 @@ if (cachedWords) {
     wordBank = JSON.parse(cachedWords);
     if (wordBank.length >= 4) {
       document.getElementById("loading-msg").style.display = "none";
-      document.getElementById("start-controls").style.display = "block";
+      document.getElementById("mode-selector").style.display = "block";
     }
   } catch (e) {}
 }
@@ -97,10 +121,12 @@ fetch(API_URL)
   .then(res => res.json())
   .then(data => {
     wordBank = data.words;
+    lbData.en2zh = data.leaderboard_en2zh || [];
+    lbData.zh2en = data.leaderboard_zh2en || [];
     localStorage.setItem("gsat_word_bank", JSON.stringify(wordBank));
-    renderLeaderboard(data.leaderboard);
     document.getElementById("loading-msg").style.display = "none";
-    document.getElementById("start-controls").style.display = "block";
+    document.getElementById("mode-selector").style.display = "block";
+    if (currentMode) renderLeaderboard(lbData[currentMode]);
   })
   .catch(() => {
     if (wordBank.length < 4) {
@@ -108,16 +134,28 @@ fetch(API_URL)
     }
   });
 
+function selectMode(mode) {
+  currentMode = mode;
+  document.getElementById("btn-en2zh").classList.toggle("active", mode === "en2zh");
+  document.getElementById("btn-zh2en").classList.toggle("active", mode === "zh2en");
+  
+  const modeTitle = (mode === "en2zh") ? "🇬🇧 看英選中" : "🇹🇼 看中選英";
+  document.getElementById("lb-title").innerText = "🏆 " + modeTitle + " 風雲榜（前 10 名）";
+  document.getElementById("mode-content").style.display = "block";
+  renderLeaderboard(lbData[mode]);
+}
+
 function formatTime(sec) {
-  if (sec >= 9999) return "-";
-  if (sec < 60) return sec + " 秒";
-  return Math.floor(sec / 60) + "分" + (sec % 60) + "秒";
+  const num = Number(sec);
+  if (isNaN(num) || num <= 0 || num >= 9999) return "-";
+  if (num < 60) return num + " 秒";
+  return Math.floor(num / 60) + "分" + (num % 60) + "秒";
 }
 
 function renderLeaderboard(list) {
   const tbody = document.querySelector("#leaderboard-table tbody");
   if (!list || list.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; color:#a0aec0;">目前尚無紀錄，快來搶頭香！</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; color:#a0aec0;">此模式尚無紀錄，快來搶頭香！</td></tr>';
     return;
   }
   const medals = ["🥇", "🥈", "🥉"];
@@ -129,10 +167,12 @@ function renderLeaderboard(list) {
 }
 
 function startQuiz() {
+  if (!currentMode) return alert("請先選擇測驗模式！");
   playerName = document.getElementById("player-name").value.trim();
   if (!playerName) return alert("請先輸入暱稱！");
   if (wordBank.length < 4) return alert("題庫單字數量不足 4 個！");
   
+  wrongRecords = [];
   const totalQuestions = Math.min(QUIZ_COUNT, wordBank.length);
   quizList = [...wordBank].sort(() => 0.5 - Math.random()).slice(0, totalQuestions);
   
@@ -150,15 +190,17 @@ function startQuiz() {
 function showQuestion() {
   isAnswering = false;
   const currentItem = quizList[currentIdx];
-  const correctAnswer = currentItem.meaning;
+  const questionText = (currentMode === "en2zh") ? currentItem.word : currentItem.meaning;
+  const correctAnswer = (currentMode === "en2zh") ? currentItem.meaning : currentItem.word;
   
   document.getElementById("progress-bar").style.width = ((currentIdx / quizList.length) * 100) + "%";
   document.getElementById("progress").innerText = "第 " + (currentIdx + 1) + " / " + quizList.length + " 題";
   document.getElementById("live-score").innerText = "得分：" + score;
-  document.getElementById("question-word").innerText = currentItem.word;
+  document.getElementById("question-word").innerText = questionText;
   
-  const allOtherMeanings = [...new Set(wordBank.filter(item => item.meaning !== correctAnswer).map(item => item.meaning))];
-  const wrongOptions = allOtherMeanings.sort(() => 0.5 - Math.random()).slice(0, 3);
+  const poolField = (currentMode === "en2zh") ? "meaning" : "word";
+  const allOthers = [...new Set(wordBank.filter(item => item[poolField] !== correctAnswer).map(item => item[poolField]))];
+  const wrongOptions = allOthers.sort(() => 0.5 - Math.random()).slice(0, 3);
   const options = [correctAnswer, ...wrongOptions].sort(() => 0.5 - Math.random());
   
   const container = document.getElementById("options-container");
@@ -169,12 +211,12 @@ function showQuestion() {
     const btn = document.createElement("button");
     btn.className = "opt-btn";
     btn.innerText = labels[idx] + ". " + optText;
-    btn.onclick = () => checkAnswer(btn, optText, correctAnswer);
+    btn.onclick = () => checkAnswer(btn, questionText, optText, correctAnswer);
     container.appendChild(btn);
   });
 }
 
-function checkAnswer(clickedBtn, selectedText, correctText) {
+function checkAnswer(clickedBtn, questionText, selectedText, correctText) {
   if (isAnswering) return;
   isAnswering = true;
 
@@ -187,6 +229,7 @@ function checkAnswer(clickedBtn, selectedText, correctText) {
   } else {
     clickedBtn.classList.add("wrong");
     allBtns.forEach(b => { if (b.innerText.includes(correctText)) b.classList.add("correct"); });
+    wrongRecords.push({ q: questionText, wrong: selectedText, right: correctText });
   }
 
   setTimeout(() => {
@@ -199,36 +242,55 @@ function endQuiz() {
   clearInterval(timerInterval);
   totalSeconds = Math.floor((Date.now() - startTime) / 1000);
   
-  // 根據分數級距切換圖片與稱號
   const rankImg = document.getElementById("rank-image");
   const rankTitle = document.getElementById("rank-title");
-  if (score >= 90) {rankTitle.innerText = "👑 單字之神！太強啦！";
-rankImg.src = "rank_s.png";
-} else if (score >= 70) {
-rankTitle.innerText = "🔥 實力堅強！表現優秀！";
-rankImg.src = "rank_a.png";
-} else if (score >= 60) {
-rankTitle.innerText = "👍 順利及格！繼續保持！";
-rankImg.src = "rank_b.png";
-} else {
-rankTitle.innerText = "💪 再接再厲！多背幾次就會了！";
-rankImg.src = "rank_c.png";
-}
-// 若尚未上傳圖片或檔名找不到，自動隱藏破圖圖示
-rankImg.onerror = function() { this.style.display = "none"; };
-document.getElementById("quiz-screen").style.display = "none";
-document.getElementById("result-screen").style.display = "block";
-document.getElementById("final-score").innerText = score;
-document.getElementById("final-time").innerText = formatTime(totalSeconds);
-fetch(API_URL, {
-method: "POST",
-body: JSON.stringify({ name: playerName, score: score, duration: totalSeconds })
-}).then(() => {
-document.getElementById("upload-status").innerText = "✅ 成績與時間已成功登錄排行榜！";
-}).catch(() => {
-document.getElementById("upload-status").innerText = "⚠️ 成績上傳失敗，請檢查網路連線。";
-});
+  if (score >= 90) {
+    rankTitle.innerText = "👑 單字之神！太強啦！";
+    rankImg.src = "rank_s.png";
+  } else if (score >= 70) {
+    rankTitle.innerText = "🔥 實力堅強！表現優秀！";
+    rankImg.src = "rank_a.png";
+  } else if (score >= 60) {
+    rankTitle.innerText = "👍 順利及格！繼續保持！";
+    rankImg.src = "rank_b.png";
+  } else {
+    rankTitle.innerText = "💪 再接再厲！多背幾次就會了！";
+    rankImg.src = "rank_c.png";
+  }
+  rankImg.onerror = function() { this.style.display = "none"; };
+
+  const wrongListEl = document.getElementById("wrong-list");
+  const wrongHeaderEl = document.getElementById("wrong-header");
+  if (wrongRecords.length === 0) {
+    wrongHeaderEl.style.color = "#2f855a";
+    wrongHeaderEl.innerText = "🎉 太神啦！本次測驗全對無錯題！";
+    wrongListEl.innerHTML = "";
+  } else {
+    wrongHeaderEl.innerText = "📝 本次錯題訂正（共 " + wrongRecords.length + " 題）";
+    wrongListEl.innerHTML = wrongRecords.map((item, idx) => 
+      '<div class="wrong-item">' +
+        '<div class="wrong-q">' + (idx + 1) + '. ' + item.q + '</div>' +
+        '<div><span class="wrong-ans-bad">你的答案：' + item.wrong + '</span> <span class="wrong-ans-good">✔ 正解：' + item.right + '</span></div>' +
+      '</div>'
+    ).join("");
+  }
+
+  document.getElementById("quiz-screen").style.display = "none";
+  document.getElementById("result-screen").style.display = "block";
+  document.getElementById("result-mode-tag").innerText = (currentMode === "en2zh") ? "看英選中" : "看中選英";
+  document.getElementById("final-score").innerText = score;
+  document.getElementById("final-time").innerText = formatTime(totalSeconds);
+  
+  fetch(API_URL, {
+    method: "POST",
+    body: JSON.stringify({ mode: currentMode, name: playerName, score: score, duration: totalSeconds })
+  }).then(() => {
+    document.getElementById("upload-status").innerText = "✅ 成績已成功登錄該模式排行榜！";
+  }).catch(() => {
+    document.getElementById("upload-status").innerText = "⚠️ 成績上傳失敗，請檢查網路連線。";
+  });
 }
 </script>
 </body>
 </html>
+
