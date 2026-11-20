@@ -4,7 +4,6 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>學測英文單字 50 題線上挑戰</title>
-<script src="https://jsdelivr.net" defer></script>
 <style>
   * { box-sizing: border-box; }
   body { font-family: system-ui, -apple-system, sans-serif; margin: 0; min-height: 100vh; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); display: flex; justify-content: center; align-items: center; padding: 15px; color: #2d3748; }
@@ -16,7 +15,7 @@
   input:focus { border-color: #667eea; }
   .primary-btn { width: 100%; padding: 14px; font-size: 17px; font-weight: 700; border: none; border-radius: 12px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; cursor: pointer; box-shadow: 0 4px 15px rgba(102,126,234,0.4); }
   .primary-btn:active { transform: scale(0.98); }
-  .progress-wrapper { width: 100%; height: 8px; background: #edf2f7; border-radius: 10px; overflow: hidden; margin-bottom: 14px; }
+  .progress-wrapper { width: 100%; height: 10px; background: #edf2f7; border-radius: 10px; overflow: hidden; margin-bottom: 14px; }
   .progress-bar { height: 100%; width: 0%; background: linear-gradient(90deg, #667eea, #764ba2); transition: width 0.25s ease; }
   .status-bar { display: flex; justify-content: space-between; font-size: 14px; font-weight: 700; color: #4a5568; margin-bottom: 10px; }
   .word-box { background: #f7fafc; border-radius: 16px; padding: 24px 15px; margin: 14px 0 18px; text-align: center; border: 1px solid #edf2f7; }
@@ -32,19 +31,20 @@
   .rank-1 { background: #fefcbf; font-weight: 700; }
   .rank-2 { background: #edf2f7; font-weight: 600; }
   .rank-3 { background: #feebc8; font-weight: 600; }
+  .rank-img { max-width: 180px; max-height: 180px; border-radius: 12px; margin: 10px auto 5px; display: block; object-fit: contain; }
 </style>
 </head>
 <body>
 
 <div class="card" id="start-screen">
   <h2>🎓 學測單字 50 題挑戰</h2>
-  <p class="info-tag">隨機抽選 50 題 • 同分比速度 • 挑戰榜首</p>
+  <p class="info-tag">隨機抽選 50 題</p>
   <p id="loading-msg" style="text-align:center; color:#667eea; font-weight:600;">⏳ 題庫載入中，請稍候...</p>
   <div id="start-controls" style="display:none;">
     <input type="text" id="player-name" placeholder="輸入你的暱稱或班級座號" required>
     <button class="primary-btn" onclick="startQuiz()">🚀 開始挑戰</button>
   </div>
-  <h3 style="margin: 20px 0 5px; font-size: 16px;">🏆 即時風雲榜（前 10 名）</h3>
+  <h3 style="margin: 20px 0 5px; font-size: 16px;">🏆 即時排行榜（前 10 名）</h3>
   <table id="leaderboard-table">
     <thead><tr><th>名次</th><th>玩家</th><th>分數</th><th>耗時</th></tr></thead>
     <tbody><tr><td colspan="4" style="text-align:center; color:#a0aec0;">讀取最新排名中...</td></tr></tbody>
@@ -63,25 +63,25 @@
 </div>
 
 <div class="card" id="result-screen" style="display:none; text-align:center;">
-  <h2>🎉 測驗完成！</h2>
-  <div style="background:#f7fafc; padding:20px; border-radius:16px; margin:18px 0;">
-    <p style="margin:0 0 8px; font-size:15px; color:#4a5568;">最終得分</p>
-    <div style="font-size:42px; font-weight:700; color:#667eea;"><span id="final-score">0</span> <span style="font-size:18px;">/ 100</span></div>
-    <p style="margin:10px 0 0; font-size:15px; color:#e53e3e; font-weight:600;">⏱️ 總耗時：<span id="final-time">0</span></p>
+  <h2 id="rank-title">🎉 測驗完成！</h2>
+  <img id="rank-image" class="rank-img" src="" alt="級距圖片">
+  <div style="background:#f7fafc; padding:18px; border-radius:16px; margin:14px 0;">
+    <p style="margin:0 0 6px; font-size:15px; color:#4a5568;">最終得分</p>
+    <div style="font-size:40px; font-weight:700; color:#667eea;"><span id="final-score">0</span> <span style="font-size:18px;">/ 100</span></div>
+    <p style="margin:8px 0 0; font-size:15px; color:#e53e3e; font-weight:600;">⏱️ 總耗時：<span id="final-time">0</span></p>
   </div>
   <p id="upload-status" style="font-size:14px; color:#718096;">正在上傳成績至排行榜...</p>
   <button class="primary-btn" onclick="location.reload()">🔄 再玩一次 / 查看最新排名</button>
 </div>
 
 <script>
-const API_URL = "https://script.google.com/macros/s/AKfycbxmqnznaDW4HOsotbLjWBcOtfeE5lMmNoR_9UxeNHFXkf3pmjFY4ROns98yZr8KZ_vI/exec";
+const API_URL = "YOUR_GAS_WEB_APP_URL";
 const QUIZ_COUNT = 50;
 const POINTS_PER_QUESTION = 2;
 
 let wordBank = [], quizList = [], currentIdx = 0, score = 0, playerName = "";
 let startTime = 0, timerInterval = null, totalSeconds = 0, isAnswering = false;
 
-// 1. 優先讀取瀏覽器本地快取，讓第二次開啟瞬間顯示開始按鈕
 const cachedWords = localStorage.getItem("gsat_word_bank");
 if (cachedWords) {
   try {
@@ -93,7 +93,6 @@ if (cachedWords) {
   } catch (e) {}
 }
 
-// 2. 背景同步最新題庫與排行榜
 fetch(API_URL)
   .then(res => res.json())
   .then(data => {
@@ -155,7 +154,7 @@ function showQuestion() {
   
   document.getElementById("progress-bar").style.width = ((currentIdx / quizList.length) * 100) + "%";
   document.getElementById("progress").innerText = "第 " + (currentIdx + 1) + " / " + quizList.length + " 題";
-    document.getElementById("live-score").innerText = "得分：" + score;
+  document.getElementById("live-score").innerText = "得分：" + score;
   document.getElementById("question-word").innerText = currentItem.word;
   
   const allOtherMeanings = [...new Set(wordBank.filter(item => item.meaning !== correctAnswer).map(item => item.meaning))];
@@ -200,26 +199,36 @@ function endQuiz() {
   clearInterval(timerInterval);
   totalSeconds = Math.floor((Date.now() - startTime) / 1000);
   
-  document.getElementById("quiz-screen").style.display = "none";
-  document.getElementById("result-screen").style.display = "block";
-  document.getElementById("final-score").innerText = score;
-  document.getElementById("final-time").innerText = formatTime(totalSeconds);
-  
-  if (score >= 80 && typeof confetti === "function") {
-    confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
-  }
-  
-  fetch(API_URL, {
-    method: "POST",
-    body: JSON.stringify({ name: playerName, score: score, duration: totalSeconds })
-  }).then(() => {
-    document.getElementById("upload-status").innerText = "✅ 成績與時間已成功登錄排行榜！";
-  }).catch(() => {
-    document.getElementById("upload-status").innerText = "⚠️ 成績上傳失敗，請檢查網路連線。";
-  });
+  // 根據分數級距切換圖片與稱號
+  const rankImg = document.getElementById("rank-image");
+  const rankTitle = document.getElementById("rank-title");
+  if (score >= 90) {rankTitle.innerText = "👑 單字之神！太強啦！";
+rankImg.src = "rank_s.png";
+} else if (score >= 70) {
+rankTitle.innerText = "🔥 實力堅強！表現優秀！";
+rankImg.src = "rank_a.png";
+} else if (score >= 60) {
+rankTitle.innerText = "👍 順利及格！繼續保持！";
+rankImg.src = "rank_b.png";
+} else {
+rankTitle.innerText = "💪 再接再厲！多背幾次就會了！";
+rankImg.src = "rank_c.png";
+}
+// 若尚未上傳圖片或檔名找不到，自動隱藏破圖圖示
+rankImg.onerror = function() { this.style.display = "none"; };
+document.getElementById("quiz-screen").style.display = "none";
+document.getElementById("result-screen").style.display = "block";
+document.getElementById("final-score").innerText = score;
+document.getElementById("final-time").innerText = formatTime(totalSeconds);
+fetch(API_URL, {
+method: "POST",
+body: JSON.stringify({ name: playerName, score: score, duration: totalSeconds })
+}).then(() => {
+document.getElementById("upload-status").innerText = "✅ 成績與時間已成功登錄排行榜！";
+}).catch(() => {
+document.getElementById("upload-status").innerText = "⚠️ 成績上傳失敗，請檢查網路連線。";
+});
 }
 </script>
 </body>
 </html>
-
-
