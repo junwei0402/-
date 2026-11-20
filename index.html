@@ -140,7 +140,7 @@ function selectMode(mode) {
   document.getElementById("btn-zh2en").classList.toggle("active", mode === "zh2en");
   
   const modeTitle = (mode === "en2zh") ? "看英選中" : "看中選英";
-  document.getElementById("lb-title").innerText = "🏆 " + modeTitle + " 風雲榜（前 10 名）";
+  document.getElementById("lb-title").innerText = "🏆 " + modeTitle + " 排行榜（前 10 名）";
   document.getElementById("mode-content").style.display = "block";
   renderLeaderboard(lbData[mode]);
 }
