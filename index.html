@@ -47,20 +47,20 @@
 
 <div class="card" id="start-screen">
   <h2>🎓 學測單字 50 題挑戰</h2>
-  <p class="info-tag">請先選擇挑戰模式 • 同分比速度</p>
+  <p class="info-tag">👉請先選擇挑戰模式👈</p>
   <p id="loading-msg" style="text-align:center; color:#667eea; font-weight:600;">⏳ 題庫載入中，請稍候...</p>
   
   <div id="mode-selector" style="display:none;">
     <div class="mode-group">
-      <button class="mode-btn" id="btn-en2zh" onclick="selectMode('en2zh')">🇬🇧 看英選中</button>
-      <button class="mode-btn" id="btn-zh2en" onclick="selectMode('zh2en')">🇹🇼 看中選英</button>
+      <button class="mode-btn" id="btn-en2zh" onclick="selectMode('en2zh')">看英選中</button>
+      <button class="mode-btn" id="btn-zh2en" onclick="selectMode('zh2en')">看中選英</button>
     </div>
   </div>
 
   <div id="mode-content" style="display:none; animation: fadeIn 0.25s ease-out;">
-    <input type="text" id="player-name" placeholder="輸入你的暱稱或班級座號" required>
+    <input type="text" id="player-name" placeholder="輸入你的暱稱" required>
     <button class="primary-btn" onclick="startQuiz()">🚀 開始挑戰</button>
-    <h3 id="lb-title" style="margin: 22px 0 5px; font-size: 16px;">🏆 即時風雲榜</h3>
+    <h3 id="lb-title" style="margin: 22px 0 5px; font-size: 16px;">🏆 即時排行榜</h3>
     <table id="leaderboard-table">
       <thead><tr><th>名次</th><th>玩家</th><th>分數</th><th>耗時</th></tr></thead>
       <tbody></tbody>
@@ -139,7 +139,7 @@ function selectMode(mode) {
   document.getElementById("btn-en2zh").classList.toggle("active", mode === "en2zh");
   document.getElementById("btn-zh2en").classList.toggle("active", mode === "zh2en");
   
-  const modeTitle = (mode === "en2zh") ? "🇬🇧 看英選中" : "🇹🇼 看中選英";
+  const modeTitle = (mode === "en2zh") ? "看英選中" : "看中選英";
   document.getElementById("lb-title").innerText = "🏆 " + modeTitle + " 風雲榜（前 10 名）";
   document.getElementById("mode-content").style.display = "block";
   renderLeaderboard(lbData[mode]);
