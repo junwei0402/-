@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>英文單字線上測驗挑戰</title>
+<title>學測英文單字 50 題線上挑戰</title>
 <style>
   body { font-family: sans-serif; max-width: 500px; margin: 20px auto; padding: 15px; background: #f4f7f6; }
   .card { background: white; padding: 20px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
@@ -14,18 +14,20 @@
   input { width: 93%; padding: 10px; margin-bottom: 15px; font-size: 16px; border: 1px solid #ccc; border-radius: 6px; }
   table { width: 100%; border-collapse: collapse; margin-top: 15px; }
   th, td { border-bottom: 1px solid #ddd; padding: 8px; text-align: left; }
+  .info-tag { color: #666; font-size: 14px; margin-bottom: 15px; }
 </style>
 </head>
 <body>
 
 <div class="card" id="start-screen">
-  <h2>英文單字挑戰賽</h2>
+  <h2>學測單字 50 題挑戰賽</h2>
+  <p class="info-tag">每次隨機抽選 50 題，每題 2 分（滿分 100 分）</p>
   <p id="loading-msg">題庫載入中，請稍候...</p>
   <div id="start-controls" style="display:none;">
     <input type="text" id="player-name" placeholder="請輸入你的暱稱" required>
-    <button onclick="startQuiz()">開始測驗</button>
+    <button onclick="startQuiz()">開始測驗 (50題)</button>
   </div>
-  <h3>🏆 即時排行榜</h3>
+  <h3>🏆 即時排行榜（前 10 名）</h3>
   <table id="leaderboard-table">
     <thead><tr><th>名次</th><th>玩家</th><th>分數</th></tr></thead>
     <tbody></tbody>
@@ -33,20 +35,26 @@
 </div>
 
 <div class="card" id="quiz-screen" style="display:none;">
-  <h3 id="progress">第 1 / 10 題</h3>
+  <div style="display:flex; justify-content:space-between; align-items:center;">
+    <h3 id="progress" style="margin:0;">第 1 / 50 題</h3>
+    <span id="live-score" style="color:#007bff; font-weight:bold;">目前得分：0</span>
+  </div>
   <h2 id="question-word" style="font-size: 32px; text-align: center; margin: 25px 0; color: #2c3e50;">Word</h2>
   <div id="options-container"></div>
 </div>
 
 <div class="card" id="result-screen" style="display:none;">
   <h2>測驗結束！</h2>
-  <p style="font-size: 20px;">你的最終得分：<strong id="final-score">0</strong></p>
+  <p style="font-size: 22px;">你的最終得分：<strong id="final-score" style="color:#007bff;">0</strong> / 100 分</p>
   <p id="upload-status">正在上傳成績至排行榜...</p>
-  <button onclick="location.reload()">再玩一次 / 查看最新排行</button>
+  <button onclick="location.reload()">再挑戰一次 / 查看最新排行</button>
 </div>
 
 <script>
-const API_URL = "https://script.google.com/macros/s/AKfycbxmqnznaDW4HOsotbLjWBcOtfeE5lMmNoR_9UxeNHFXkf3pmjFY4ROns98yZr8KZ_vI/exec"; // 替換為你的 GAS 網址
+const API_URL = "https://script.google.com/macros/s/AKfycbxmqnznaDW4HOsotbLjWBcOtfeE5lMmNoR_9UxeNHFXkf3pmjFY4ROns98yZr8KZ_vI/exec"; // ⚠️ 請替換為你的 GAS 部署網址
+const QUIZ_COUNT = 50; // 每次測驗題數
+const POINTS_PER_QUESTION = 2; // 每題分數（50題 x 2分 = 100分）
+
 let wordBank = [], quizList = [], currentIdx = 0, score = 0, playerName = "";
 
 // 初始化載入題庫與排行榜
@@ -57,11 +65,18 @@ fetch(API_URL)
     renderLeaderboard(data.leaderboard);
     document.getElementById("loading-msg").style.display = "none";
     document.getElementById("start-controls").style.display = "block";
+  })
+  .catch(() => {
+    document.getElementById("loading-msg").innerText = "❌ 題庫載入失敗，請確認 API 網址或網路連線。";
   });
 
 function renderLeaderboard(list) {
   const tbody = document.querySelector("#leaderboard-table tbody");
-  tbody.innerHTML = list.map((item, idx) => `<tr><td>${idx + 1}</td><td>${item.name}</td><td>${item.score}</td></tr>`).join("");
+  if (list.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="3" style="text-align:center; color:#888;">目前尚無紀錄，快來搶頭香！</td></tr>`;
+    return;
+  }
+  tbody.innerHTML = list.map((item, idx) => `<tr><td>${idx + 1}</td><td>${item.name}</td><td>${item.score} 分</td></tr>`).join("");
 }
 
 function startQuiz() {
@@ -69,8 +84,9 @@ function startQuiz() {
   if (!playerName) return alert("請先輸入暱稱！");
   if (wordBank.length < 4) return alert("題庫單字數量不足 4 個，無法產生四選一題目！");
   
-  // 打亂單字順序作為本次測驗題目
-  quizList = [...wordBank].sort(() => 0.5 - Math.random());
+  // 打亂題庫並截取前 50 題（若題庫總數不足 50 題則全出）
+  const totalQuestions = Math.min(QUIZ_COUNT, wordBank.length);
+  quizList = [...wordBank].sort(() => 0.5 - Math.random()).slice(0, totalQuestions);
   
   document.getElementById("start-screen").style.display = "none";
   document.getElementById("quiz-screen").style.display = "block";
@@ -82,9 +98,10 @@ function showQuestion() {
   const correctAnswer = currentItem.meaning;
   
   document.getElementById("progress").innerText = `第 ${currentIdx + 1} / ${quizList.length} 題`;
+  document.getElementById("live-score").innerText = `目前得分：${score}`;
   document.getElementById("question-word").innerText = currentItem.word;
   
-  // 1. 過濾掉正確答案，從其餘單字中隨機抽出 3 個錯誤選項（並排除重複中文）
+  // 隨機抽出 3 個不重複的錯誤中文選項
   const allOtherMeanings = [...new Set(
     wordBank
       .filter(item => item.meaning !== correctAnswer)
@@ -92,7 +109,7 @@ function showQuestion() {
   )];
   const wrongOptions = allOtherMeanings.sort(() => 0.5 - Math.random()).slice(0, 3);
   
-  // 2. 將正確答案與 3 個錯誤選項合併後隨機洗牌
+  // 合併正確答案並隨機洗牌
   const options = [correctAnswer, ...wrongOptions].sort(() => 0.5 - Math.random());
   
   const container = document.getElementById("options-container");
@@ -110,7 +127,7 @@ function showQuestion() {
 
 function checkAnswer(selectedText, correctText) {
   if (selectedText === correctText) {
-    score += 10; // 每題 10 分
+    score += POINTS_PER_QUESTION;
   }
   currentIdx++;
   if (currentIdx < quizList.length) {
@@ -130,8 +147,11 @@ function endQuiz() {
     body: JSON.stringify({ name: playerName, score: score })
   }).then(() => {
     document.getElementById("upload-status").innerText = "✅ 成績已成功登錄排行榜！";
+  }).catch(() => {
+    document.getElementById("upload-status").innerText = "⚠️ 成績上傳失敗，請檢查網路連線。";
   });
 }
 </script>
 </body>
 </html>
+
